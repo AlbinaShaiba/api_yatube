@@ -1,38 +1,31 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import viewsets 
 from rest_framework.response import Response
 from rest_framework import status
 
-from posts.models import Comment, Group, Post
-from .exceptions import PermissionDenied
+from posts.models import Group, Post
 from .serializers import  CommentSerializer, GroupSerializer, PostSerializer
 
 
 class PostViewSet(viewsets.ModelViewSet):
+    pk_url_kwarg = "post_id"
     queryset = Post.objects.all()
     serializer_class = PostSerializer
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
-    def update(self, request, pk=None, **kwargs):
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        if instance.author != self.request.user:
+    def update(self, request, *args, **kwargs):
+        post = self.get_object()
+        if post.author != self.request.user:
             return Response(status=status.HTTP_403_FORBIDDEN)
-        else:
-            self.perform_update(serializer)
-            return Response(status=status.HTTP_200_OK)
+        return super().update(request, *args, **kwargs)
 
-    def destroy(self, request, pk=None):
-        instance = self.get_object()
-        if instance.author != self.request.user:
+    def destroy(self, request, *args, **kwargs):
+        post = self.get_object()
+        if post.author != self.request.user:
             return Response(status=status.HTTP_403_FORBIDDEN)
-        else:
-            instance.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-
+        return super().destroy(request, *args, **kwargs)
 
 
 class GroupViewSet(viewsets.ReadOnlyModelViewSet):
@@ -44,33 +37,23 @@ class CommentViewSet(viewsets.ModelViewSet):
     pk_url_kwargs = ["post_id", "comment_id"]
     serializer_class =  CommentSerializer
     
-
     def get_queryset(self):
         post = Post.objects.get(id=self.kwargs['post_id'])
         return post.comments
 
-    def perform_create(self, serializer, pk=None):
+    def perform_create(self, serializer):
         post = Post.objects.get(id=self.kwargs['post_id'])
         serializer.save(author=self.request.user,
-                        post=post)
+                        post=post) 
         
-    def update(self, request, pk=None, **kwargs):
-        partial = kwargs.pop('partial', False)
-        instance = Post.objects.get(pk)
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        if instance.author != self.request.user:
+    def update(self, request, *args, **kwargs):
+        comment = self.get_object()
+        if comment.author != self.request.user:
             return Response(status=status.HTTP_403_FORBIDDEN)
-        else:
-            self.perform_update(serializer)
-            return Response(status=status.HTTP_200_OK)
-
-    def destroy(self, request, pk=None):
-        instance = self.get_object()
-        if instance.author != self.request.user:
+        return super().update(request, *args, **kwargs)
+        
+    def destroy(self, request, *args, **kwargs):
+        comment = self.get_object()
+        if comment.author != self.request.user:
             return Response(status=status.HTTP_403_FORBIDDEN)
-        else:
-            instance.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-
-
+        return super().destroy(request, *args, **kwargs)
