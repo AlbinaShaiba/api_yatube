@@ -8,7 +8,6 @@ from .serializers import  CommentSerializer, GroupSerializer, PostSerializer
 
 
 class PostViewSet(viewsets.ModelViewSet):
-    pk_url_kwarg = "post_id"
     queryset = Post.objects.all()
     serializer_class = PostSerializer
 
@@ -19,13 +18,13 @@ class PostViewSet(viewsets.ModelViewSet):
         post = self.get_object()
         if post.author != self.request.user:
             return Response(status=status.HTTP_403_FORBIDDEN)
-        return super().update(request, *args, **kwargs)
+        return super().update(request)
 
     def destroy(self, request, *args, **kwargs):
         post = self.get_object()
         if post.author != self.request.user:
             return Response(status=status.HTTP_403_FORBIDDEN)
-        return super().destroy(request, *args, **kwargs)
+        return super().destroy(request)
 
 
 class GroupViewSet(viewsets.ReadOnlyModelViewSet):
@@ -34,7 +33,6 @@ class GroupViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    pk_url_kwargs = ["post_id", "comment_id"]
     serializer_class =  CommentSerializer
     
     def get_queryset(self):
@@ -50,10 +48,10 @@ class CommentViewSet(viewsets.ModelViewSet):
         comment = self.get_object()
         if comment.author != self.request.user:
             return Response(status=status.HTTP_403_FORBIDDEN)
-        return super().update(request, *args, **kwargs)
+        return super().update(request)
         
     def destroy(self, request, *args, **kwargs):
         comment = self.get_object()
         if comment.author != self.request.user:
             return Response(status=status.HTTP_403_FORBIDDEN)
-        return super().destroy(request, *args, **kwargs)
+        return super().destroy(request)
