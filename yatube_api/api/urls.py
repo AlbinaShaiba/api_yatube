@@ -8,8 +8,8 @@ app_name = 'api'
 
 router = DefaultRouter()
 
-router.register('posts', PostViewSet, basename='post')
-router.register('groups', GroupViewSet, basename='group')
+router.register(r'posts', PostViewSet)
+router.register(r'groups', GroupViewSet)
 router.register(r'posts/(?P<post_id>\d+)/comments', CommentViewSet, basename='comment')
 
 urlpatterns = [
