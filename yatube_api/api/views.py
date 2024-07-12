@@ -1,3 +1,5 @@
+from django.core.exceptions import PermissionDenied
+
 from rest_framework import viewsets 
 from rest_framework.response import Response
 from rest_framework import status
@@ -13,15 +15,15 @@ class PostViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
-    def update(self, request, *args, **kwargs):
-        if self.get_object().author != self.request.user:
-            return Response(status=status.HTTP_403_FORBIDDEN)
-        return super().update(request)
+    def perform_update(self, serializer):
+        if serializer.instance.author != self.request.user:
+            raise PermissionDenied(PermissionError)
+        super().perform_update(serializer)
 
-    def destroy(self, request, *args, **kwargs):
-        if self.get_object().author != self.request.user:
-            return Response(status=status.HTTP_403_FORBIDDEN)
-        return super().destroy(request)
+    def perform_destroy(self, instance):
+        if instance.author != self.request.user:
+            raise PermissionDenied(PermissionError)
+        return super().perform_destroy(instance)
 
 
 class GroupViewSet(viewsets.ReadOnlyModelViewSet):
@@ -40,12 +42,12 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user,
                         post=post) 
         
-    def update(self, request, *args, **kwargs):
-        if self.get_object().author != self.request.user:
-            return Response(status=status.HTTP_403_FORBIDDEN)
-        return super().update(request)
+    def perform_update(self, serializer):
+        if serializer.instance.author != self.request.user:
+            raise PermissionDenied(PermissionError)
+        super().perform_update(serializer)
         
-    def destroy(self, request, *args, **kwargs):
-        if self.get_object().author != self.request.user:
-            return Response(status=status.HTTP_403_FORBIDDEN)
-        return super().destroy(request)
+    def perform_destroy(self, instance):
+        if instance.author != self.request.user:
+            raise PermissionDenied(PermissionError)
+        return super().perform_destroy(instance)
