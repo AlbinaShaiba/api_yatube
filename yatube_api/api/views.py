@@ -3,8 +3,8 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework import status
 
+from api.serializers import  CommentSerializer, GroupSerializer, PostSerializer
 from posts.models import Group, Post
-from .serializers import  CommentSerializer, GroupSerializer, PostSerializer
 
 
 class PostViewSet(viewsets.ModelViewSet):
