@@ -1,10 +1,8 @@
 from django.core.exceptions import PermissionDenied
+from django.shortcuts import get_object_or_404
+from rest_framework import viewsets
 
-from rest_framework import viewsets 
-from rest_framework.response import Response
-from rest_framework import status
-
-from api.serializers import  CommentSerializer, GroupSerializer, PostSerializer
+from api.serializers import CommentSerializer, GroupSerializer, PostSerializer
 from posts.models import Group, Post
 
 
@@ -17,37 +15,43 @@ class PostViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         if serializer.instance.author != self.request.user:
-            raise PermissionDenied(PermissionError)
+            raise PermissionDenied("You do not have permission to"
+                                   " update this content")
         super().perform_update(serializer)
 
     def perform_destroy(self, instance):
         if instance.author != self.request.user:
-            raise PermissionDenied(PermissionError)
-        return super().perform_destroy(instance)
+            raise PermissionDenied(("You do not have permission to"
+                                   " delete this content"))
+        super().perform_destroy(instance)
 
 
 class GroupViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Group.objects.all()
-    serializer_class =  GroupSerializer 
+    serializer_class = GroupSerializer
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    serializer_class =  CommentSerializer
-    
+    serializer_class = CommentSerializer
+
+    def get_comment_post(self):
+        return get_object_or_404(Post, id=self.kwargs['post_id'])
+
     def get_queryset(self):
-        return Post.objects.get(id=self.kwargs['post_id']).comments
+        return self.get_comment_post().comments.all()
 
     def perform_create(self, serializer):
-        post = Post.objects.get(id=self.kwargs['post_id'])
         serializer.save(author=self.request.user,
-                        post=post) 
-        
+                        post=self.get_comment_post())
+
     def perform_update(self, serializer):
         if serializer.instance.author != self.request.user:
-            raise PermissionDenied(PermissionError)
+            raise PermissionDenied(("You do not have permission to"
+                                   " update this content"))
         super().perform_update(serializer)
-        
+
     def perform_destroy(self, instance):
         if instance.author != self.request.user:
-            raise PermissionDenied(PermissionError)
-        return super().perform_destroy(instance)
+            raise PermissionDenied(("You do not have permission to"
+                                   " delete this content"))
+        super().perform_destroy(instance)
